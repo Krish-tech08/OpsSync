@@ -1,96 +1,88 @@
 // services/github.service.js
-// Owner: Backend Developer (Priya)
-// Purpose: All GitHub API calls live here. Controllers never call GitHub directly —
-//          they always go through this service. If GitHub's API changes, only
-//          this file needs to be updated.
+// All functions now accept a userToken parameter so each user's
+// requests use their own GitHub access token instead of a global env token.
 
-const githubClient = require('../config/github');
+const axios = require('axios');
+
+// ── HELPER: build a per-user GitHub client ───────────────────
+const makeClient = (userToken) =>
+  axios.create({
+    baseURL: 'https://api.github.com',
+    headers: {
+      Authorization: `Bearer ${userToken}`,
+      Accept:        'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+  });
+
+// ── FUNCTION: getUserRepos ───────────────────────────────────
+// Fetches all repos the authenticated user owns or is a member of.
+// Returns a clean array: [{ id, name, fullName, owner, private, description, language }]
+const getUserRepos = async (userToken) => {
+  const client = makeClient(userToken);
+
+  // affiliation=owner,collaborator,organization_member gives broadest list
+  const response = await client.get('/user/repos', {
+    params: {
+      affiliation: 'owner,collaborator,organization_member',
+      sort:        'updated',
+      per_page:    100,
+    },
+  });
+
+  return response.data.map((repo) => ({
+    id:          repo.id,
+    name:        repo.name,
+    fullName:    repo.full_name,       // "owner/repo"
+    owner:       repo.owner.login,
+    private:     repo.private,
+    description: repo.description,
+    language:    repo.language,
+    updatedAt:   repo.updated_at,
+    hasActions:  repo.has_downloads,  // rough proxy — actions endpoint will confirm
+  }));
+};
 
 // ── FUNCTION: getWorkflowRuns ────────────────────────────────
-// What it does : Fetches a list of recent CI/CD pipeline runs for a given
-//                GitHub repository.
-// Parameters   : owner  — GitHub username or org (e.g. "octocat")
-//                repo   — repository name        (e.g. "hello-world")
-// Returns      : Array of workflow run objects from GitHub (id, name, status,
-//                conclusion, created_at, html_url, etc.)
-// GitHub docs  : GET /repos/{owner}/{repo}/actions/runs
-
-const getWorkflowRuns = async (owner, repo) => {
-  const response = await githubClient.get(
+const getWorkflowRuns = async (owner, repo, userToken) => {
+  const client   = makeClient(userToken);
+  const response = await client.get(
     `/repos/${owner}/${repo}/actions/runs`,
-    { params: { per_page: 20 } } // Latest 20 runs
+    { params: { per_page: 20 } }
   );
-  // Return only the runs array from the response
   return response.data.workflow_runs;
 };
 
 // ── FUNCTION: getSingleRun ───────────────────────────────────
-// What it does : Fetches details of one specific workflow run by its ID.
-// Parameters   : owner  — GitHub username or org
-//                repo   — repository name
-//                runId  — the numeric ID of the workflow run
-// Returns      : Single workflow run object with full details
-// GitHub docs  : GET /repos/{owner}/{repo}/actions/runs/{run_id}
-
-const getSingleRun = async (owner, repo, runId) => {
-  const response = await githubClient.get(
-    `/repos/${owner}/${repo}/actions/runs/${runId}`
-  );
+const getSingleRun = async (owner, repo, runId, userToken) => {
+  const client   = makeClient(userToken);
+  const response = await client.get(`/repos/${owner}/${repo}/actions/runs/${runId}`);
   return response.data;
 };
 
 // ── FUNCTION: reRunWorkflow ──────────────────────────────────
-// What it does : Triggers a re-run of a previously completed workflow run.
-//                Useful for retrying failed pipelines without pushing new code.
-// Parameters   : owner  — GitHub username or org
-//                repo   — repository name
-//                runId  — the numeric ID of the workflow run to re-run
-// Returns      : 201 from GitHub means re-run was successfully queued.
-//                Returns true to signal success to the controller.
-// GitHub docs  : POST /repos/{owner}/{repo}/actions/runs/{run_id}/rerun
-
-const reRunWorkflow = async (owner, repo, runId) => {
-  await githubClient.post(
-    `/repos/${owner}/${repo}/actions/runs/${runId}/rerun`
-  );
-  // GitHub returns 201 with empty body on success
+const reRunWorkflow = async (owner, repo, runId, userToken) => {
+  const client = makeClient(userToken);
+  await client.post(`/repos/${owner}/${repo}/actions/runs/${runId}/rerun`);
   return { queued: true, runId };
 };
 
 // ── FUNCTION: cancelWorkflow ─────────────────────────────────
-// What it does : Cancels a workflow run that is currently in progress.
-//                Only works on runs with status "in_progress" or "queued".
-// Parameters   : owner  — GitHub username or org
-//                repo   — repository name
-//                runId  — the numeric ID of the in-progress run to cancel
-// Returns      : 202 from GitHub means cancellation request was accepted.
-// GitHub docs  : POST /repos/{owner}/{repo}/actions/runs/{run_id}/cancel
-
-const cancelWorkflow = async (owner, repo, runId) => {
-  await githubClient.post(
-    `/repos/${owner}/${repo}/actions/runs/${runId}/cancel`
-  );
-  // GitHub returns 202 with empty body on success
+const cancelWorkflow = async (owner, repo, runId, userToken) => {
+  const client = makeClient(userToken);
+  await client.post(`/repos/${owner}/${repo}/actions/runs/${runId}/cancel`);
   return { cancelled: true, runId };
 };
 
 // ── FUNCTION: getWorkflowJobs ────────────────────────────────
-// What it does : Fetches the individual jobs inside a workflow run.
-//                Each job has its own status, steps, and logs URL.
-// Parameters   : owner  — GitHub username or org
-//                repo   — repository name
-//                runId  — the numeric ID of the workflow run
-// Returns      : Array of job objects (id, name, status, conclusion, steps)
-// GitHub docs  : GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs
-
-const getWorkflowJobs = async (owner, repo, runId) => {
-  const response = await githubClient.get(
-    `/repos/${owner}/${repo}/actions/runs/${runId}/jobs`
-  );
+const getWorkflowJobs = async (owner, repo, runId, userToken) => {
+  const client   = makeClient(userToken);
+  const response = await client.get(`/repos/${owner}/${repo}/actions/runs/${runId}/jobs`);
   return response.data.jobs;
 };
 
 module.exports = {
+  getUserRepos,
   getWorkflowRuns,
   getSingleRun,
   reRunWorkflow,
