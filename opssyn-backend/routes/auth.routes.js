@@ -1,24 +1,26 @@
 // routes/auth.routes.js
 // Owner: Backend Developer (Priya)
-// Purpose: Declares the Auth API endpoints and maps them to controller functions.
-//          This file only wires URLs to functions — no logic lives here.
+// Purpose: Auth API endpoints — local login/register + GitHub OAuth.
 
 const express = require('express');
 const router  = express.Router();
 
-const { registerUser, loginUser, getMe } = require('../controllers/auth.controller');
+const { registerUser, loginUser, githubCallback, getMe } = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth');
 
-// POST /api/auth/register → Create new account
-// No auth required — this is the sign-up endpoint
+// POST /api/auth/register  → Local email/password sign-up
 router.post('/register', registerUser);
 
-// POST /api/auth/login → Verify credentials and get token
-// No auth required — user doesn't have a token yet
+// POST /api/auth/login     → Local email/password login
 router.post('/login', loginUser);
 
-// GET /api/auth/me → Get current logged-in user's profile
-// protect middleware runs first: verifies token → attaches req.user → getMe runs
+// POST /api/auth/github    → GitHub OAuth login
+// Android app sends the OAuth `code` it got from GitHub here.
+// Backend exchanges it for a GitHub token, fetches the profile,
+// finds/creates the user in MongoDB, and returns our own JWT.
+router.post('/github', githubCallback);
+
+// GET  /api/auth/me        → Get current user profile (JWT required)
 router.get('/me', protect, getMe);
 
 module.exports = router;
