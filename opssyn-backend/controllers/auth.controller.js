@@ -42,28 +42,52 @@ const registerUser = async (req, res, next) => {
 };
 
 // ── POST /api/auth/login ─────────────────────────────────────
+// Behaviour:
+//   • User exists + correct password  → log in ✅
+//   • User exists + wrong password    → 401 ❌
+//   • User does NOT exist             → auto-register then log in ✅
 const loginUser = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-
-    // ── DEBUG: remove after confirming login works ───────────
-    console.log('🔐 Login attempt  :', { email, password });
+    const { email, password, name } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'Email and password are required.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Email and password are required.',
+      });
     }
 
-    const user = await User.findOne({ email }).select('+password');
+    let user = await User.findOne({ email }).select('+password');
 
-    // ── DEBUG ────────────────────────────────────────────────
-    console.log('👤 User found     :', user ? 'YES' : 'NO');
-    console.log('🔑 Stored hash    :', user?.password ?? 'N/A');
-    console.log('🏷  Auth provider  :', user?.authProvider ?? 'N/A');
-
+    // ── AUTO-REGISTER: first time this email is seen ─────────
     if (!user) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      console.log('🆕 No user found — auto-registering:', email);
+
+      // Use the name sent from the app, or derive one from the email
+      const displayName = name || email.split('@')[0];
+
+      user = await User.create({
+        name:         displayName,
+        email,
+        password,                 // pre-save hook hashes it automatically
+        authProvider: 'local',
+        role:         'engineer',
+      });
+
+      const token = generateToken(user);
+
+      console.log('✅ Auto-registered and logged in:', email);
+
+      return res.status(201).json({
+        success: true,
+        data: {
+          token,
+          user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+        },
+      });
     }
 
+    // ── EXISTING USER: block GitHub-only accounts ────────────
     if (user.authProvider === 'github') {
       return res.status(401).json({
         success: false,
@@ -71,16 +95,18 @@ const loginUser = async (req, res, next) => {
       });
     }
 
+    // ── EXISTING USER: verify password ───────────────────────
     const isMatch = await user.comparePassword(password);
-
-    // ── DEBUG ────────────────────────────────────────────────
-    console.log('✅ Password match  :', isMatch);
-
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: 'Invalid email or password.' });
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password.',
+      });
     }
 
     const token = generateToken(user);
+
+    console.log('✅ Login successful:', email);
 
     res.status(200).json({
       success: true,
@@ -90,7 +116,6 @@ const loginUser = async (req, res, next) => {
       },
     });
   } catch (err) {
-    // ── DEBUG ──────────────────────────────────────────────
     console.error('❌ Login error:', err);
     next(err);
   }
