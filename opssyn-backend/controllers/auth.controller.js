@@ -51,17 +51,34 @@ const registerUser = async (req, res, next) => {
 };
 
 // ── POST /api/auth/login ─────────────────────────────────────
+// const loginUser = async (req, res, next) => {
+//   try {
+//     const { email, password } = req.body;
+
+//     if (!email || !password) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Email and password are required.',
+//       });
+//     }
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    console.log('🔐 Login attempt:', { email, password }); // ADD THIS
+
     if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email and password are required.',
-      });
+      return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
+    const user = await User.findOne({ email }).select('+password');
+    console.log('👤 User found:', user ? 'YES' : 'NO');  // ADD THIS
+    console.log('🔑 Stored hash:', user?.password);       // ADD THIS
+
+    if (!user) { ... }
+
+    const isMatch = await user.comparePassword(password);
+    console.log('✅ Password match:', isMatch);            // ADD THIS
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
