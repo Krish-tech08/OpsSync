@@ -1,7 +1,4 @@
 // controllers/auth.controller.js
-// Owner: Backend Developer (Priya)
-// FIX: Wrap all responses in { success, data: { token, user } }
-//      so the Android ApiResponse<T> wrapper parses correctly.
 
 const jwt       = require('jsonwebtoken');
 const axios     = require('axios');
@@ -32,17 +29,11 @@ const registerUser = async (req, res, next) => {
     const user  = await User.create({ name, email, password, authProvider: 'local', role });
     const token = generateToken(user);
 
-    // ✅ FIX: wrap in `data:` so ApiResponse<AuthResponse> parses correctly
     res.status(201).json({
       success: true,
       data: {
         token,
-        user: {
-          _id:   user._id,
-          name:  user.name,
-          email: user.email,
-          role:  user.role,
-        },
+        user: { _id: user._id, name: user.name, email: user.email, role: user.role },
       },
     });
   } catch (err) {
@@ -51,35 +42,24 @@ const registerUser = async (req, res, next) => {
 };
 
 // ── POST /api/auth/login ─────────────────────────────────────
-// const loginUser = async (req, res, next) => {
-//   try {
-//     const { email, password } = req.body;
-
-//     if (!email || !password) {
-//       return res.status(400).json({
-//         success: false,
-//         message: 'Email and password are required.',
-//       });
-//     }
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    console.log('🔐 Login attempt:', { email, password }); // ADD THIS
+    // ── DEBUG: remove after confirming login works ───────────
+    console.log('🔐 Login attempt  :', { email, password });
 
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required.' });
     }
 
     const user = await User.findOne({ email }).select('+password');
-    console.log('👤 User found:', user ? 'YES' : 'NO');  // ADD THIS
-    console.log('🔑 Stored hash:', user?.password);       // ADD THIS
 
-    if (!user) { ... }
+    // ── DEBUG ────────────────────────────────────────────────
+    console.log('👤 User found     :', user ? 'YES' : 'NO');
+    console.log('🔑 Stored hash    :', user?.password ?? 'N/A');
+    console.log('🏷  Auth provider  :', user?.authProvider ?? 'N/A');
 
-    const isMatch = await user.comparePassword(password);
-    console.log('✅ Password match:', isMatch);            // ADD THIS
-    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
@@ -92,26 +72,26 @@ const loginUser = async (req, res, next) => {
     }
 
     const isMatch = await user.comparePassword(password);
+
+    // ── DEBUG ────────────────────────────────────────────────
+    console.log('✅ Password match  :', isMatch);
+
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
     const token = generateToken(user);
 
-    // ✅ FIX: wrap in `data:` so ApiResponse<AuthResponse> parses correctly
     res.status(200).json({
       success: true,
       data: {
         token,
-        user: {
-          _id:   user._id,
-          name:  user.name,
-          email: user.email,
-          role:  user.role,
-        },
+        user: { _id: user._id, name: user.name, email: user.email, role: user.role },
       },
     });
   } catch (err) {
+    // ── DEBUG ──────────────────────────────────────────────
+    console.error('❌ Login error:', err);
     next(err);
   }
 };
@@ -190,7 +170,6 @@ const githubCallback = async (req, res, next) => {
 
     const token = generateToken(user);
 
-    // ✅ FIX: wrap in `data:` so ApiResponse<AuthResponse> parses correctly
     res.status(200).json({
       success: true,
       data: {
@@ -218,8 +197,6 @@ const getMe = async (req, res, next) => {
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
-
-    // ✅ FIX: wrap in `data:` so ApiResponse<UserDto> parses correctly
     res.status(200).json({
       success: true,
       data: {
