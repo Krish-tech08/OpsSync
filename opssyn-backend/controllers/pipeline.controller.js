@@ -23,17 +23,18 @@ const getUserRepos = async (req, res, next) => {
 
     const repos = await githubService.getUserRepos(token);
 
-    // Shape owner as an object so Android RepoDto parses correctly
+    // github.service already returns owner as a string (e.g. "krishna")
+    // Shape it as an object so Android RepoOwnerDto parses correctly
     const shaped = repos.map((repo) => ({
       id:          repo.id,
       name:        repo.name,
-      full_name:   repo.full_name,
+      full_name:   repo.fullName,   // service returns camelCase fullName
       private:     repo.private,
       description: repo.description,
       language:    repo.language,
       owner: {
-        login:      repo.owner?.login ?? '',
-        avatar_url: repo.owner?.avatar_url ?? '',
+        login:      repo.owner,     // repo.owner is already the login string
+        avatar_url: '',
       },
     }));
 
