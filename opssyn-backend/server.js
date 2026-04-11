@@ -1,4 +1,5 @@
 require('dotenv').config();
+const webhookRoutes = require('./routes/webhook.routes');
 const express = require('express');
 const cors    = require('cors');
 const helmet  = require('helmet');
@@ -15,9 +16,13 @@ const errorHandler       = require('./middleware/errorHandler');
 
 const app = express();
 
+// Add this BEFORE express.json() middleware
+// because GitHub webhook needs raw body for signature verification
+
 app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
+app.use('/api/webhooks', webhookRoutes);
 app.use(express.json());
 
 app.get('/health', (req, res) => {
