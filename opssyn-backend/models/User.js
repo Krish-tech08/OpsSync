@@ -31,7 +31,12 @@ const UserSchema = new mongoose.Schema(
       enum:    ['engineer', 'manager', 'admin'],
       default: 'engineer',
     },
-
+// In models/User.js — add inside UserSchema fields
+teamsWebhookUrl: {
+  type:   String,
+  default: null,
+  select: false, // Don't expose in normal responses
+},
     // ── GITHUB OAUTH FIELDS ──────────────────────────────────
     // Populated when the user signs in via GitHub instead of email/password
     githubId: {
