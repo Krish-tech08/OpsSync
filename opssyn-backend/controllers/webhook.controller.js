@@ -26,14 +26,14 @@ const verifySignature = (req) => {
 
 const handleGitHubWebhook = async (req, res, next) => {
   try {
-    // 1. Verify the webhook is genuinely from GitHub
     if (!verifySignature(req)) {
       return res.status(401).json({ success: false, message: 'Invalid webhook signature' });
     }
 
     const event   = req.headers['x-github-event'];
-    const payload = req.body;
-
+ const payload = Buffer.isBuffer(req.body)
+      ? JSON.parse(req.body.toString())
+      : req.body;
     // 2. We only care about workflow_run events
     if (event !== 'workflow_run') {
       return res.status(200).json({ success: true, message: `Event ${event} ignored` });
