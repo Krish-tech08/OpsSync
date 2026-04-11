@@ -11,23 +11,33 @@ const User          = require('../models/User');
 // Protected : Yes — req.user is set by protect middleware
 const getUserRepos = async (req, res, next) => {
   try {
-    // Load user with their GitHub access token
     const user = await User.findById(req.user.id).select('+githubAccessToken');
+    const token = user?.githubAccessToken || process.env.GITHUB_TOKEN;
 
-    if (!user?.githubAccessToken) {
+    if (!token) {
       return res.status(403).json({
         success: false,
-        message: 'No GitHub account linked. Please sign in with GitHub.',
+        message: 'No GitHub token available.',
       });
     }
 
-    const repos = await githubService.getUserRepos(user.githubAccessToken);
+    const repos = await githubService.getUserRepos(token);
 
-    res.status(200).json({
-      success: true,
-      count: repos.length,
-      data: repos,
-    });
+    // Shape owner as an object so Android RepoDto parses correctly
+    const shaped = repos.map((repo) => ({
+      id:          repo.id,
+      name:        repo.name,
+      full_name:   repo.full_name,
+      private:     repo.private,
+      description: repo.description,
+      language:    repo.language,
+      owner: {
+        login:      repo.owner?.login ?? '',
+        avatar_url: repo.owner?.avatar_url ?? '',
+      },
+    }));
+
+    res.status(200).json({ success: true, count: shaped.length, data: shaped });
   } catch (err) {
     next(err);
   }
