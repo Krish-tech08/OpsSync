@@ -50,29 +50,29 @@ const getUserRepos = async (req, res, next) => {
 const getPipelines = async (req, res, next) => {
   try {
     const { owner, repo } = req.params;
-
-    // Load user's personal GitHub token
     const user = await User.findById(req.user.id).select('+githubAccessToken');
-    if (!user?.githubAccessToken) {
-      return res.status(403).json({
-        success: false,
-        message: 'No GitHub account linked. Please sign in with GitHub.',
-      });
-    }
+    const token = user?.githubAccessToken || process.env.GITHUB_TOKEN;
+    if (!token) return res.status(403).json({ success: false, message: 'No GitHub token.' });
 
-    const runs = await githubService.getWorkflowRuns(owner, repo, user.githubAccessToken);
+    const runs = await githubService.getWorkflowRuns(owner, repo, token);
 
     const shaped = runs.map((run) => ({
       id:          run.id,
-      name:        run.name,
+      name:        run.name        ?? 'Unnamed Run',
       status:      run.status,
-      conclusion:  run.conclusion,
-      branch:      run.head_branch,
-      commit:      run.head_sha?.slice(0, 7),
-      triggeredBy: run.triggering_actor?.login,
-      startedAt:   run.created_at,
-      updatedAt:   run.updated_at,
-      url:         run.html_url,
+      conclusion:  run.conclusion  ?? null,
+      run_number:  run.run_number,
+      created_at:  run.created_at  ?? null,
+      updated_at:  run.updated_at  ?? null,
+      html_url:    run.html_url    ?? null,
+      actor: run.triggering_actor ? {
+        login:      run.triggering_actor.login      ?? 'unknown',
+        avatar_url: run.triggering_actor.avatar_url ?? '',
+      } : null,
+      head_commit: run.head_commit ? {
+        id:      run.head_commit.id      ?? '',
+        message: run.head_commit.message ?? '',
+      } : null,
     }));
 
     res.status(200).json({ success: true, count: shaped.length, data: shaped });
@@ -86,43 +86,52 @@ const getPipelines = async (req, res, next) => {
 const getPipelineDetail = async (req, res, next) => {
   try {
     const { owner, repo, runId } = req.params;
-
     const user = await User.findById(req.user.id).select('+githubAccessToken');
-    if (!user?.githubAccessToken) {
-      return res.status(403).json({ success: false, message: 'No GitHub account linked.' });
-    }
+    const token = user?.githubAccessToken || process.env.GITHUB_TOKEN;
+    if (!token) return res.status(403).json({ success: false, message: 'No GitHub token.' });
 
     const [run, jobs] = await Promise.all([
-      githubService.getSingleRun(owner, repo, runId, user.githubAccessToken),
-      githubService.getWorkflowJobs(owner, repo, runId, user.githubAccessToken),
+      githubService.getSingleRun(owner, repo, runId, token),
+      githubService.getWorkflowJobs(owner, repo, runId, token),
     ]);
 
     const shapedJobs = jobs.map((job) => ({
-      id:         job.id,
-      name:       job.name,
-      status:     job.status,
-      conclusion: job.conclusion,
-      startedAt:  job.started_at,
-      steps: job.steps.map((step) => ({
-        number:     step.number,
-        name:       step.name,
-        status:     step.status,
-        conclusion: step.conclusion,
+      id:           job.id,
+      name:         job.name        ?? 'Unnamed Job',
+      status:       job.status,
+      conclusion:   job.conclusion  ?? null,
+      started_at:   job.started_at  ?? null,
+      completed_at: job.completed_at ?? null,
+      steps: (job.steps ?? []).map((step) => ({
+        number:       step.number,
+        name:         step.name       ?? 'Unnamed Step',
+        status:       step.status,
+        conclusion:   step.conclusion ?? null,
+        started_at:   step.started_at  ?? null,
+        completed_at: step.completed_at ?? null,
       })),
     }));
 
+    // ── Return FLAT shape matching PipelineRunDto ──────────
     res.status(200).json({
       success: true,
       data: {
-        run: {
-          id:         run.id,
-          name:       run.name,
-          status:     run.status,
-          conclusion: run.conclusion,
-          branch:     run.head_branch,
-          commit:     run.head_sha?.slice(0, 7),
-          url:        run.html_url,
-        },
+        id:          run.id,
+        name:        run.name        ?? 'Unnamed Run',
+        status:      run.status,
+        conclusion:  run.conclusion  ?? null,
+        run_number:  run.run_number,
+        created_at:  run.created_at  ?? null,
+        updated_at:  run.updated_at  ?? null,
+        html_url:    run.html_url    ?? null,
+        actor: run.triggering_actor ? {
+          login:      run.triggering_actor.login      ?? 'unknown',
+          avatar_url: run.triggering_actor.avatar_url ?? '',
+        } : null,
+        head_commit: run.head_commit ? {
+          id:      run.head_commit.id      ?? '',
+          message: run.head_commit.message ?? '',
+        } : null,
         jobs: shapedJobs,
       },
     });
