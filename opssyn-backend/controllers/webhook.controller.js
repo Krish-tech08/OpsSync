@@ -7,14 +7,21 @@ const Incident = require('../models/Incident');
 // If signature doesn't match → reject. Prevents fake webhooks.
 const verifySignature = (req) => {
   const secret    = process.env.GITHUB_WEBHOOK_SECRET;
-  if (!secret) return true; // skip verification if secret not set (dev only)
+  if (!secret) return true;
 
   const signature = req.headers['x-hub-signature-256'];
   if (!signature) return false;
 
+  // req.body is a Buffer when using express.raw()
+  const payload  = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));
   const hmac     = crypto.createHmac('sha256', secret);
-  const digest   = 'sha256=' + hmac.update(JSON.stringify(req.body)).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  const digest   = 'sha256=' + hmac.update(payload).digest('hex');
+
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  } catch {
+    return false;
+  }
 };
 
 const handleGitHubWebhook = async (req, res, next) => {
