@@ -101,7 +101,14 @@ const handleGitHubWebhook = async (req, res, next) => {
         runUrl:   run.html_url,
       }
     });
-
+const { notifyPipelineInternal } = require('./notification.controller');
+notifyPipelineInternal(
+  user._id,
+  run.name ?? 'Unnamed Run',
+  'FAILED',
+  repo.full_name,
+  run.id
+);
     console.log(`✅ Incident created: ${incident.title}`);
     res.status(200).json({ success: true, data: incident });
 
