@@ -34,7 +34,7 @@ app.use('/api/pipelines',     pipelineRoutes);
 app.use('/api/incidents',     incidentRoutes);
 app.use('/api/escalations',   escalationRoutes);
 app.use('/api/notifications', notificationRoutes);
-
+app.use('/api/webhooks', webhookRoutes);
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
