@@ -3,13 +3,22 @@ const User    = require('../models/User');
 const Incident = require('../models/Incident');
 
 // ✅ Correct verifySignature (FIXED)
-const verifySignature = (req) => {
-  const secret = process.env.GITHUB_WEBHOOK_SECRET;
 
   // Skip verification for demo
-  if (!secret) return true;
+ const verifySignature = (req) => {
+  const secret = process.env.GITHUB_WEBHOOK_SECRET;
+
+  console.log("🔥 Secret:", secret);
+
+  // ✅ Force skip if no valid secret
+  if (!secret || secret.trim() === "") {
+    return true;
+  }
 
   const signature = req.headers['x-hub-signature-256'];
+
+  console.log("🔥 Signature:", signature);
+
   if (!signature) return false;
 
   const payload = Buffer.isBuffer(req.body)
@@ -19,14 +28,7 @@ const verifySignature = (req) => {
   const hmac = crypto.createHmac('sha256', secret);
   const digest = 'sha256=' + hmac.update(payload).digest('hex');
 
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'utf8'),
-      Buffer.from(digest, 'utf8')
-    );
-  } catch {
-    return false;
-  }
+  return signature === digest;
 };
 
 const handleGitHubWebhook = async (req, res, next) => {
