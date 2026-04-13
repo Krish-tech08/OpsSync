@@ -4,7 +4,7 @@
 //          create, fetch, update, assign, and sort incidents.
 
 const Incident = require('../models/Incident');
-
+const { notifyIncidentInternal } = require('./notification.controller');
 // ── FUNCTION: createIncident ─────────────────────────────────
 // Route        : POST /api/incidents
 // What it does : Creates a new incident in the database.
@@ -20,8 +20,11 @@ const createIncident = async (req, res, next) => {
       title,
       description,
       priority,
-      createdBy: req.user.id, // Set from JWT token by protect middleware
+      createdBy: req.user.id,
     });
+
+    // Auto-send push notification to creator
+    notifyIncidentInternal(incident);
 
     res.status(201).json({ success: true, incident });
   } catch (err) {
