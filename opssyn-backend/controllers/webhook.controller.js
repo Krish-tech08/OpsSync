@@ -2,15 +2,11 @@ const crypto  = require('crypto');
 const User    = require('../models/User');
 const Incident = require('../models/Incident');
 
-// ── Verify GitHub webhook signature ─────────────────────────
-// GitHub signs every webhook payload with your WEBHOOK_SECRET.
-// If signature doesn't match → reject. Prevents fake webhooks.
+// ✅ Correct verifySignature (FIXED)
 const verifySignature = (req) => {
-  const secret    = process.env.GITHUB_WEBHOOK_SECRET;
-  const verifySignature = (req) => {
   const secret = process.env.GITHUB_WEBHOOK_SECRET;
 
-  // 🔥 If no secret → skip verification completely
+  // Skip verification for demo
   if (!secret) return true;
 
   const signature = req.headers['x-hub-signature-256'];
