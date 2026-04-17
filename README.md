@@ -23,7 +23,7 @@
 | **Krish Kumar Chaurasia** | Team Lead · Android Developer · DevOps Architect |
 | **Kanishka Tyagi** | Backend Developer |
 | **Kanishka Lodhi** | Backend Developer |
-| **Ishita Srivastav** | Android Developer · UI/UX |
+| **Ishita Srivastav** | DevOps / Setup Engineer|
 
 ---
 
