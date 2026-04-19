@@ -1,6 +1,4 @@
 // services/github.service.js
-// All functions now accept a userToken parameter so each user's
-// requests use their own GitHub access token instead of a global env token.
 
 const axios = require('axios');
 
@@ -9,19 +7,15 @@ const makeClient = (userToken) =>
   axios.create({
     baseURL: 'https://api.github.com',
     headers: {
-      Authorization: `Bearer ${userToken}`,
-      Accept:        'application/vnd.github+json',
+      Authorization:          `Bearer ${userToken}`,
+      Accept:                 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
     },
   });
 
 // ── FUNCTION: getUserRepos ───────────────────────────────────
-// Fetches all repos the authenticated user owns or is a member of.
-// Returns a clean array: [{ id, name, fullName, owner, private, description, language }]
 const getUserRepos = async (userToken) => {
-  const client = makeClient(userToken);
-
-  // affiliation=owner,collaborator,organization_member gives broadest list
+  const client   = makeClient(userToken);
   const response = await client.get('/user/repos', {
     params: {
       affiliation: 'owner,collaborator,organization_member',
@@ -29,17 +23,16 @@ const getUserRepos = async (userToken) => {
       per_page:    100,
     },
   });
-
   return response.data.map((repo) => ({
     id:          repo.id,
     name:        repo.name,
-    fullName:    repo.full_name,       // "owner/repo"
+    fullName:    repo.full_name,
     owner:       repo.owner.login,
     private:     repo.private,
     description: repo.description,
     language:    repo.language,
     updatedAt:   repo.updated_at,
-    hasActions:  repo.has_downloads,  // rough proxy — actions endpoint will confirm
+    hasActions:  repo.has_downloads,
   }));
 };
 
@@ -60,6 +53,13 @@ const getSingleRun = async (owner, repo, runId, userToken) => {
   return response.data;
 };
 
+// ── FUNCTION: getWorkflowJobs ────────────────────────────────
+const getWorkflowJobs = async (owner, repo, runId, userToken) => {
+  const client   = makeClient(userToken);
+  const response = await client.get(`/repos/${owner}/${repo}/actions/runs/${runId}/jobs`);
+  return response.data.jobs;
+};
+
 // ── FUNCTION: reRunWorkflow ──────────────────────────────────
 const reRunWorkflow = async (owner, repo, runId, userToken) => {
   const client = makeClient(userToken);
@@ -74,18 +74,43 @@ const cancelWorkflow = async (owner, repo, runId, userToken) => {
   return { cancelled: true, runId };
 };
 
-// ── FUNCTION: getWorkflowJobs ────────────────────────────────
-const getWorkflowJobs = async (owner, repo, runId, userToken) => {
-  const client   = makeClient(userToken);
-  const response = await client.get(`/repos/${owner}/${repo}/actions/runs/${runId}/jobs`);
-  return response.data.jobs;
+// ── FUNCTION: listWebhooks ───────────────────────────────────
+const listWebhooks = async (owner, repo, userToken) => {
+  try {
+    const client   = makeClient(userToken);
+    const response = await client.get(`/repos/${owner}/${repo}/hooks`);
+    return response.data;
+  } catch (err) {
+    // 404 means no hooks or no access — treat as empty
+    console.warn(`listWebhooks: ${err.message}`);
+    return [];
+  }
+};
+
+// ── FUNCTION: createWebhook ──────────────────────────────────
+const createWebhook = async (owner, repo, userToken, webhookUrl, secret) => {
+  const client = makeClient(userToken);
+  const response = await client.post(`/repos/${owner}/${repo}/hooks`, {
+    name:   'web',
+    active: true,
+    events: ['workflow_run'],
+    config: {
+      url:          webhookUrl,
+      content_type: 'json',
+      secret:       secret,
+      insecure_ssl: '0',
+    },
+  });
+  return response.data;
 };
 
 module.exports = {
   getUserRepos,
   getWorkflowRuns,
   getSingleRun,
+  getWorkflowJobs,
   reRunWorkflow,
   cancelWorkflow,
-  getWorkflowJobs,
+  listWebhooks,
+  createWebhook,
 };
