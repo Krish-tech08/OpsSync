@@ -20,7 +20,7 @@ const createIncident = async (req, res, next) => {
       title,
       description,
       priority,
-      createdBy: req.user.id,
+      createdBy: "000000000000000000000000",
     });
 
     // Auto-send push notification to creator
