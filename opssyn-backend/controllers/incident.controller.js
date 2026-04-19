@@ -20,12 +20,12 @@ const createIncident = async (req, res, next) => {
       title,
       description,
       priority,
-      createdBy: req.user?._id ?? null,
+      // Use real user if called from authenticated route, 
+      // null if called from Android without auth header
+      createdBy: req.user?._id ?? undefined,
     });
 
-    // Auto-send push notification to creator
     notifyIncidentInternal(incident);
-
     res.status(201).json({ success: true, incident });
   } catch (err) {
     next(err);
