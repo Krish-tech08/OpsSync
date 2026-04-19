@@ -23,7 +23,7 @@
 | **Krish Kumar Chaurasia** | Team Lead · Android Developer · DevOps Architect |
 | **Kanishka Tyagi** | Backend Developer |
 | **Kanishka Lodhi** | Backend Developer |
-| **Ishita Srivastav** | DevOps / Setup Engineer|
+| **Ishita Srivastava** | DevOps / Setup Engineer|
 
 ---
 
@@ -334,6 +334,6 @@ This project was built as a team project. All rights reserved by the OpsSync tea
 
 Built with ❤️ by the **OpsSync Team**
 
-**Krish Kumar Chaurasia · Kanishka Tyagi · Kanishka Lodhi · Ishita Srivastav**
+**Krish Kumar Chaurasia · Kanishka Tyagi · Kanishka Lodhi · Ishita Srivastava**
 
 </div>
