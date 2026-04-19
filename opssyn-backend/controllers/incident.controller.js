@@ -5,12 +5,12 @@
 
 const Incident = require('../models/Incident');
 const { notifyIncidentInternal } = require('./notification.controller');
+
 // ── FUNCTION: createIncident ─────────────────────────────────
 // Route        : POST /api/incidents
 // What it does : Creates a new incident in the database.
-//                Automatically sets createdBy to the logged-in user.
 // Request body : { title, description, priority }
-// Response     : { success, incident }
+// Response     : { success, data }
 
 const createIncident = async (req, res, next) => {
   try {
@@ -20,13 +20,12 @@ const createIncident = async (req, res, next) => {
       title,
       description,
       priority,
-      // Use real user if called from authenticated route, 
-      // null if called from Android without auth header
       createdBy: req.user?._id ?? undefined,
     });
 
     notifyIncidentInternal(incident);
-    res.status(201).json({ success: true, incident });
+
+    res.status(201).json({ success: true, data: incident });
   } catch (err) {
     next(err);
   }
@@ -38,27 +37,26 @@ const createIncident = async (req, res, next) => {
 //                or priority, and sorting by date or priority.
 // Query params : status, priority, sortBy (createdAt | priority), order (asc | desc)
 // Example      : GET /api/incidents?status=open&priority=critical&sortBy=createdAt&order=desc
-// Response     : { success, count, incidents }
+// Response     : { success, count, data }
 
 const getAllIncidents = async (req, res, next) => {
   try {
     const { status, priority, sortBy = 'createdAt', order = 'desc' } = req.query;
 
-    // Build filter object dynamically based on query params
     const filter = {};
     if (status)   filter.status   = status;
     if (priority) filter.priority = priority;
 
-    // Build sort object — e.g. { createdAt: -1 } for newest first
     const sortOrder = order === 'asc' ? 1 : -1;
     const sort = { [sortBy]: sortOrder };
 
     const incidents = await Incident.find(filter)
       .sort(sort)
-      .populate('createdBy', 'name email')   // Replace ID with user name+email
+      .populate('createdBy', 'name email')
       .populate('assignedTo', 'name email');
 
-    res.status(200).json({ success: true, count: incidents.length, incidents });
+    // ✅ FIX: key changed from "incidents" to "data" to match ApiResponse<T> wrapper
+    res.status(200).json({ success: true, count: incidents.length, data: incidents });
   } catch (err) {
     next(err);
   }
@@ -66,9 +64,7 @@ const getAllIncidents = async (req, res, next) => {
 
 // ── FUNCTION: getIncidentById ────────────────────────────────
 // Route        : GET /api/incidents/:id
-// What it does : Fetches a single incident by its MongoDB ID.
-// URL params   : id — the incident's MongoDB _id
-// Response     : { success, incident }
+// Response     : { success, data }
 
 const getIncidentById = async (req, res, next) => {
   try {
@@ -80,7 +76,7 @@ const getIncidentById = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Incident not found.' });
     }
 
-    res.status(200).json({ success: true, incident });
+    res.status(200).json({ success: true, data: incident });
   } catch (err) {
     next(err);
   }
@@ -88,35 +84,31 @@ const getIncidentById = async (req, res, next) => {
 
 // ── FUNCTION: updateIncident ─────────────────────────────────
 // Route        : PUT /api/incidents/:id
-// What it does : Updates incident fields — status, description, priority.
-//                Automatically sets resolvedAt timestamp when status → resolved.
 // Request body : { status?, description?, priority? }
-// Response     : { success, incident }
+// Response     : { success, data }
 
 const updateIncident = async (req, res, next) => {
   try {
     const { status, description, priority } = req.body;
 
-    // Build update object with only provided fields
     const updates = {};
     if (status)      updates.status      = status;
     if (description) updates.description = description;
     if (priority)    updates.priority    = priority;
 
-    // Auto-stamp resolvedAt when status is set to resolved
     if (status === 'resolved') updates.resolvedAt = new Date();
 
     const incident = await Incident.findByIdAndUpdate(
       req.params.id,
       updates,
-      { new: true, runValidators: true } // Return updated doc + run schema validation
+      { new: true, runValidators: true }
     );
 
     if (!incident) {
       return res.status(404).json({ success: false, message: 'Incident not found.' });
     }
 
-    res.status(200).json({ success: true, incident });
+    res.status(200).json({ success: true, data: incident });
   } catch (err) {
     next(err);
   }
@@ -124,10 +116,8 @@ const updateIncident = async (req, res, next) => {
 
 // ── FUNCTION: assignIncident ─────────────────────────────────
 // Route        : PATCH /api/incidents/:id/assign
-// What it does : Assigns an incident to a specific user and sets
-//                status to in_progress automatically.
-// Request body : { userId } — the MongoDB _id of the user to assign to
-// Response     : { success, incident }
+// Request body : { userId }
+// Response     : { success, data }
 
 const assignIncident = async (req, res, next) => {
   try {
@@ -143,7 +133,7 @@ const assignIncident = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Incident not found.' });
     }
 
-    res.status(200).json({ success: true, incident });
+    res.status(200).json({ success: true, data: incident });
   } catch (err) {
     next(err);
   }
@@ -151,7 +141,6 @@ const assignIncident = async (req, res, next) => {
 
 // ── FUNCTION: deleteIncident ─────────────────────────────────
 // Route        : DELETE /api/incidents/:id
-// What it does : Permanently deletes an incident. Admin only.
 // Response     : { success, message }
 
 const deleteIncident = async (req, res, next) => {
