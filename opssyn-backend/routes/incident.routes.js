@@ -18,11 +18,11 @@ const { protect, authorise } = require('../middleware/auth');
 
 // All routes below require a valid JWT token
 // POST   /api/incidents              → Create a new incident
-router.post('/',          protect, createIncident);
+router.post('/',createIncident);
 
 // GET    /api/incidents              → Get all incidents (with filters + sorting)
 // Example: /api/incidents?status=open&priority=critical&sortBy=createdAt&order=desc
-router.get('/',           protect, getAllIncidents);
+router.get('/',getAllIncidents);
 
 // GET    /api/incidents/:id          → Get single incident by ID
 router.get('/:id',        protect, getIncidentById);
