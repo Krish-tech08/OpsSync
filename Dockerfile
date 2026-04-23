@@ -13,7 +13,7 @@ RUN npm install
 # Copy rest of project
 COPY . .
 
-# Expose port
+# Expose port for container networking
 EXPOSE 5000
 
 # Start server
