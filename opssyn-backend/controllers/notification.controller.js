@@ -6,7 +6,7 @@ const messaging = require('../config/firebase');
 const User      = require('../models/User');
 const Incident  = require('../models/Incident');
 
-// ── HELPER: send a single FCM notification ───────────────────
+// ── HELPER: send a single FCM notification ─────────────────
 const sendFcmNotification = async (fcmToken, title, body, data = {}) => {
   const message = {
     token: fcmToken,
@@ -32,7 +32,7 @@ const sendFcmNotification = async (fcmToken, title, body, data = {}) => {
   return messaging.send(message);
 };
 
-// ── FUNCTION: registerFcmToken ───────────────────────────────
+// ── FUNCTION: registerFcmToken ─────────────────────────────
 // Route     : POST /api/notifications/fcm/register
 // What it does: Saves the device FCM token for the logged-in user.
 //               Called on every app launch so token stays fresh.
@@ -59,7 +59,7 @@ const registerFcmToken = async (req, res, next) => {
   }
 };
 
-// ── FUNCTION: removeFcmToken ─────────────────────────────────
+// ── FUNCTION: removeFcmToken ───────────────────────────────
 // Route     : DELETE /api/notifications/fcm/register
 // What it does: Clears FCM token on logout so user stops receiving
 //               notifications after signing out.
@@ -72,7 +72,7 @@ const removeFcmToken = async (req, res, next) => {
   }
 };
 
-// ── FUNCTION: notifyIncident ─────────────────────────────────
+// ── FUNCTION: notifyIncident ───────────────────────────────
 // Route     : POST /api/notifications/incident/:incidentId
 // What it does: Sends a push notification to the assigned user
 //               (or creator) when an incident is created or updated.
