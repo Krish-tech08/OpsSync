@@ -122,7 +122,9 @@ const notifyIncident = async (req, res, next) => {
   } catch (err) {
     // FCM token invalid / expired
     if (err.code === 'messaging/registration-token-not-registered') {
-      await User.findByIdAndUpdate(req.user.id, { fcmToken: null });
+  if (req.user?.id) {
+    await User.findByIdAndUpdate(req.user.id, { fcmToken: null });
+  }
       return res.status(200).json({
         success: true,
         message: 'FCM token was invalid — cleared from database.',
