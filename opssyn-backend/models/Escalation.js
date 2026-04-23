@@ -1,7 +1,4 @@
-// models/Escalation.js
-// Owner: Incident Engineer (Riya)
-// Purpose: Tracks every escalation event — who escalated, which incident,
-//          to whom, and why. Gives a full audit trail.
+
 
 const mongoose = require('mongoose');
 
