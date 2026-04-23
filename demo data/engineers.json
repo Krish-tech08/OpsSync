@@ -1,0 +1,26 @@
+[
+  {
+    "id": "eng_001",
+    "name": "Amit Sharma",
+    "email": "amit@opsync.dev",
+    "status": "AVAILABLE",
+    "currentLoad": 1,
+    "skills": ["backend", "api", "database"]
+  },
+  {
+    "id": "eng_002",
+    "name": "Neha Verma",
+    "email": "neha@opsync.dev",
+    "status": "BUSY",
+    "currentLoad": 2,
+    "skills": ["frontend", "react", "ui"]
+  },
+  {
+    "id": "eng_003",
+    "name": "Rohit Singh",
+    "email": "rohit@opsync.dev",
+    "status": "AVAILABLE",
+    "currentLoad": 0,
+    "skills": ["devops", "ci/cd", "infra"]
+  }
+]
