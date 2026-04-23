@@ -1,4 +1,4 @@
-# Use Node base image
+# Use lightweight Node image for smaller size
 FROM node:18
 
 # Set working directory
