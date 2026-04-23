@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "988878263240",
+    "project_id": "mindful-ai-nc8w6",
+    "storage_bucket": "mindful-ai-nc8w6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:988878263240:android:1655c4676f37aede1526fd",
+        "android_client_info": {
+          "package_name": "com.example.opssync"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIYHILBbDQke8NtvGheKxEBHvPmh1fJrI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
