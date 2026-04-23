@@ -8,6 +8,16 @@ const errorHandler = (err, req, res, next) => {
   // Log the full error internally for debugging
   console.error(`[ERROR] ${req.method} ${req.originalUrl} →`, err.message);
 
+     // 🔐 Handle JWT errors safely (ADDED PART)
+  if (err.name === 'JsonWebTokenError') {
+    err.statusCode = 401;
+    err.message = 'Invalid token';
+  }
+
+  if (err.name === 'TokenExpiredError') {
+    err.statusCode = 401;
+    err.message = 'Token expired';
+  }
   // Default to 500 Internal Server Error unless the error has a statusCode
   const statusCode = err.statusCode || 500;
 
