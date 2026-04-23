@@ -106,7 +106,8 @@ const notifyIncident = async (req, res, next) => {
       low:      '🟢',
     }[incident.priority] || '⚪';
 
-    const title = `${priorityEmoji} ${incident.priority.toUpperCase()} Incident`;
+    const priority = (incident.priority || 'unknown').toUpperCase();
+    const title = `${priorityEmoji} ${priority} Incident`;
     const body  = incident.title;
 
     await sendFcmNotification(fcmToken, title, body, {
