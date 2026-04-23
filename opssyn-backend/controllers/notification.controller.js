@@ -106,8 +106,10 @@ const notifyIncident = async (req, res, next) => {
       low:      '🟢',
     }[incident.priority] || '⚪';
 
-    const title = `${priorityEmoji} ${incident.priority.toUpperCase()} Incident`;
+    const priority = (incident.priority || 'unknown').toUpperCase();
+    const title = `${priorityEmoji} ${priority} Incident`;
     const body  = incident.title;
+    console.log('[NOTIFY] Sending incident notification to:', fcmToken);
 
     await sendFcmNotification(fcmToken, title, body, {
       type:       'incident',
@@ -120,7 +122,9 @@ const notifyIncident = async (req, res, next) => {
   } catch (err) {
     // FCM token invalid / expired
     if (err.code === 'messaging/registration-token-not-registered') {
-      await User.findByIdAndUpdate(req.user.id, { fcmToken: null });
+  if (req.user?.id) {
+    await User.findByIdAndUpdate(req.user.id, { fcmToken: null });
+  }
       return res.status(200).json({
         success: true,
         message: 'FCM token was invalid — cleared from database.',
