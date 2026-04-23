@@ -1,0 +1,39 @@
+[
+  {
+    "id": "inc_001",
+    "title": "API Gateway Down",
+    "description": "Users unable to access core services",
+    "severity": "CRITICAL",
+    "status": "OPEN",
+    "assignedEngineer": null,
+    "createdAt": "2026-04-23T08:00:00Z"
+  },
+  {
+    "id": "inc_002",
+    "title": "Database Connection Timeout",
+    "description": "Frequent DB timeouts under load",
+    "severity": "HIGH",
+    "status": "ASSIGNED",
+    "assignedEngineer": "eng_001",
+    "createdAt": "2026-04-23T07:30:00Z"
+  },
+  {
+    "id": "inc_003",
+    "title": "Memory Leak in Auth Service",
+    "description": "RAM usage increasing continuously",
+    "severity": "MEDIUM",
+    "status": "IN_PROGRESS",
+    "assignedEngineer": "eng_002",
+    "createdAt": "2026-04-23T06:45:00Z"
+  },
+  {
+    "id": "inc_004",
+    "title": "Login Failure Issue",
+    "description": "Users unable to login intermittently",
+    "severity": "LOW",
+    "status": "RESOLVED",
+    "assignedEngineer": "eng_003",
+    "resolutionNotes": "Fixed token validation bug",
+    "createdAt": "2026-04-22T20:00:00Z"
+  }
+]
