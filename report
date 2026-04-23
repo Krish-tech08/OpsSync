@@ -1,0 +1,333 @@
+
+
+# **PocketOps – Mobile DevOps Pipeline & Incident Management System**
+
+---
+
+
+## **1. Introduction**
+
+PocketOps is a mobile-first DevOps system designed to help engineers monitor CI/CD pipelines and manage incidents in real time. The system enables users to track pipeline status, detect failures, trigger actions, and respond to incidents directly from a mobile interface without relying on desktop dashboards.
+
+It acts as a centralized command system for DevOps teams, reducing delays in response and improving operational efficiency.
+
+---
+
+## **2. Problem Statement**
+
+Modern DevOps tools are primarily desktop-oriented and lack efficient mobile capabilities. Engineers often face delays in responding to pipeline failures or production incidents when away from their systems.
+
+This results in increased **Mean Time To Response (MTTR)** and affects system reliability.
+
+---
+
+## **3. Objectives**
+
+* Develop a secure backend system for monitoring CI/CD pipelines
+* Integrate with GitHub Actions for real-time pipeline tracking
+* Implement incident management workflows
+* Enable automated failure detection and response
+* Design a scalable and modular backend architecture
+
+---
+
+## **4. System Overview**
+
+The system consists of three major components:
+
+1. **Mobile Application (Android)** – User interface for monitoring and actions
+2. **Backend Server (Node.js)** – Handles logic, APIs, and integrations
+3. **CI/CD Integration (GitHub Actions)** – Provides pipeline data
+
+---
+
+## **5. System Architecture**
+
+**Mobile App → Backend Server → GitHub API → CI/CD Pipelines**
+
+The backend acts as a secure intermediary layer that:
+
+* Communicates with GitHub APIs
+* Processes pipeline data
+* Sends structured responses to the mobile application
+
+---
+
+## **6. Technology Stack**
+
+### **Frontend**
+
+* Android (Kotlin)
+
+### **Backend**
+
+* Node.js
+* Express.js
+
+### **Database**
+
+* MongoDB
+
+### **DevOps Tools**
+
+* GitHub Actions
+
+### **Other Tools**
+
+* JWT Authentication
+* REST APIs
+* Axios (API calls)
+* bcrypt (password hashing)
+* node-cron (background jobs)
+
+---
+
+## **7. Functional Requirements**
+
+* User authentication and authorization
+* View pipeline status (success, failure, running)
+* Trigger pipeline actions (re-run, cancel)
+* Incident creation and management
+* Automated escalation of unresolved incidents
+* Notification handling
+
+---
+
+## **8. Non-Functional Requirements**
+
+* Scalability
+* Security (JWT-based authentication)
+* Reliability
+* Performance efficiency
+* Maintainability (modular code structure)
+
+---
+
+## **9. Backend Design**
+
+### **9.1 Architecture**
+
+The backend follows a **layered architecture**:
+
+* **Routes** – Define API endpoints
+* **Controllers** – Handle request and response
+* **Services** – Business logic and API integration
+* **Models** – Database schemas
+* **Middleware** – Authentication and error handling
+
+---
+
+### **9.2 Key Modules**
+
+#### **Authentication Module**
+
+* Handles user registration and login
+* Uses JWT for secure authentication
+* Passwords are hashed using bcrypt
+
+---
+
+#### **Pipeline Management Module**
+
+* Fetches pipeline data from GitHub Actions
+* Provides endpoints for:
+
+  * Viewing workflows
+  * Viewing pipeline runs
+  * Re-running pipelines
+  * Canceling pipelines
+
+---
+
+#### **Incident Management Module**
+
+* Creates incidents manually or automatically on failures
+* Supports severity levels: low, medium, high, critical
+* Status lifecycle:
+  **open → in_progress → resolved**
+
+---
+
+#### **Escalation Module**
+
+* Automatically escalates unresolved incidents
+* Uses scheduled jobs (node-cron)
+* Reassigns incidents to available engineers
+
+---
+
+#### **Notification Module**
+
+* Sends alerts for:
+
+  * Incident creation
+  * Assignment changes
+  * Escalations
+* Can be extended to push notifications (Firebase)
+
+---
+
+## **10. GitHub Integration**
+
+The backend integrates with GitHub Actions API to:
+
+* Fetch workflow runs
+* Detect pipeline failures
+* Trigger re-runs and cancellations
+
+**Example Endpoint Used:**
+
+```
+GET /repos/{owner}/{repo}/actions/runs
+```
+
+---
+
+## **11. Workflow Description**
+
+1. User opens the mobile application
+2. Backend fetches pipeline data from GitHub
+3. Pipeline status is displayed
+4. On failure, an incident is created
+5. User can:
+
+   * Acknowledge issue
+   * Re-run pipeline
+   * Assign or escalate incident
+
+---
+
+## **12. Database Design**
+
+### **User Model**
+
+* Name
+* Email (unique)
+* Password (hashed)
+* Role (engineer/admin)
+* CreatedAt
+
+---
+
+### **Incident Model**
+
+* Title
+* Description
+* Severity
+* Status
+* Assigned user
+* Pipeline run ID
+* Escalation status
+* Timestamps
+
+---
+
+### **Escalation Model**
+
+* Incident reference
+* Previous assignee
+* New assignee
+* Reason
+* Trigger type (auto/manual)
+* Timestamp
+
+---
+
+## **13. Security Implementation**
+
+* Password hashing using bcrypt
+* JWT-based authentication
+* Role-based authorization
+* Secure storage of credentials using environment variables
+* Protection against unauthorized API access
+* Secure HTTP headers
+
+---
+
+## **14. API Overview**
+
+The system provides REST APIs for:
+
+* Authentication (login/register)
+* Pipeline monitoring
+* Incident management
+* Escalation handling
+* Notifications
+
+All protected routes require JWT authentication.
+
+---
+
+## **15. Testing**
+
+* Unit testing for backend APIs
+* Manual testing using Postman
+* Pipeline integration testing
+* Scenario testing for failures and escalations
+
+---
+
+## **16. Results**
+
+The system successfully:
+
+* Monitors CI/CD pipelines in real time
+* Detects failures automatically
+* Manages incidents effectively
+* Supports escalation workflows
+* Provides mobile-friendly DevOps access
+
+---
+
+## **17. Advantages**
+
+* Mobile-first DevOps solution
+* Faster incident response
+* Real-time monitoring
+* Secure and scalable architecture
+* Modular backend design
+
+---
+
+## **18. Limitations**
+
+* Limited to GitHub Actions integration
+* Basic notification system
+* No real-time WebSocket updates
+
+---
+
+## **19. Future Enhancements**
+
+* Integration with Jenkins and other CI/CD tools
+* Real-time updates using WebSockets
+* Role-based access control improvements
+* Advanced dashboards and analytics
+* Full push notification system
+
+---
+
+## **20. Team Responsibilities**
+
+* **Backend Developer:** API development, authentication, integrations
+* **DevOps Engineer:** CI/CD, Docker, deployment
+* **Incident Engineer:** Incident handling and escalation logic
+
+---
+
+## **21. Conclusion**
+
+PocketOps provides an efficient and scalable solution for managing DevOps pipelines and incidents through a mobile interface. It reduces response time and improves system reliability by enabling engineers to take immediate action from anywhere.
+
+The project demonstrates strong backend engineering concepts including modular architecture, secure authentication, API integration, and automated incident handling.
+
+---
+
+## **22. References**
+
+* GitHub API Documentation
+* Node.js Documentation
+* MongoDB Documentation
+* DevOps Best Practices
+
+
