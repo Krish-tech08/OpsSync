@@ -444,3 +444,11 @@ A background cron job runs every minute. It finds any incident that is still `op
 - `NOTIFICATION_MODE=log` means notifications print to your terminal — no external service needed
 - To enable real push notifications, set `NOTIFICATION_MODE=firebase` and plug in Firebase Admin SDK in `notification.service.js`
 - The escalation job only runs while the server is running
+
+## 🐳 Running with Docker
+
+# Build image
+docker build -t backend-app .
+
+# Run container
+docker run -p 3000:3000 backend-app
