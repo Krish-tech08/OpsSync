@@ -4,10 +4,10 @@ FROM node:18
 # Set working directory inside container
 WORKDIR /app
 
-# Copy package files first
+# Copy package files to install dependencies first (for better caching)
 COPY package*.json ./
 
-# Install dependencies
+# Install the dependencies
 RUN npm install
 
 # Copy rest of project
