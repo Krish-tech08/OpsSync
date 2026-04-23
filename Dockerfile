@@ -1,7 +1,7 @@
 # Use lightweight Node image for smaller size
 FROM node:18
 
-# Set working directory
+# Set working directory inside container
 WORKDIR /app
 
 # Copy package files first
