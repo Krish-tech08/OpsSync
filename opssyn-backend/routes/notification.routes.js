@@ -14,6 +14,7 @@ router.post('/fcm/register',   protect, registerFcmToken);
 
 // Remove FCM token on logout
 router.delete('/fcm/register', protect, removeFcmToken);
+router.delete('/fcm/remove', protect, removeFcmToken);
 
 // Manually trigger incident push notification
 router.post('/incident/:incidentId', protect, notifyIncident);
