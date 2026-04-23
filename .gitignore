@@ -1,4 +1,7 @@
+# Ignore node modules to reduce image size
 node_modules/
+# Ignore environment files
 .env
+# Ignore logs
 *.log
 .DS_Store
