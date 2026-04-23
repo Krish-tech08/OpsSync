@@ -2,7 +2,6 @@
 
 const axios = require('axios');
 
-// ── HELPER: build a per-user GitHub client ───────────────────
 const makeClient = (userToken) =>
   axios.create({
     baseURL: 'https://api.github.com',
@@ -13,7 +12,6 @@ const makeClient = (userToken) =>
     },
   });
 
-// ── FUNCTION: getUserRepos ───────────────────────────────────
 const getUserRepos = async (userToken) => {
   const client   = makeClient(userToken);
   const response = await client.get('/user/repos', {
@@ -36,7 +34,6 @@ const getUserRepos = async (userToken) => {
   }));
 };
 
-// ── FUNCTION: getWorkflowRuns ────────────────────────────────
 const getWorkflowRuns = async (owner, repo, userToken) => {
   const client   = makeClient(userToken);
   const response = await client.get(
@@ -46,35 +43,30 @@ const getWorkflowRuns = async (owner, repo, userToken) => {
   return response.data.workflow_runs;
 };
 
-// ── FUNCTION: getSingleRun ───────────────────────────────────
 const getSingleRun = async (owner, repo, runId, userToken) => {
   const client   = makeClient(userToken);
   const response = await client.get(`/repos/${owner}/${repo}/actions/runs/${runId}`);
   return response.data;
 };
 
-// ── FUNCTION: getWorkflowJobs ────────────────────────────────
 const getWorkflowJobs = async (owner, repo, runId, userToken) => {
   const client   = makeClient(userToken);
   const response = await client.get(`/repos/${owner}/${repo}/actions/runs/${runId}/jobs`);
   return response.data.jobs;
 };
 
-// ── FUNCTION: reRunWorkflow ──────────────────────────────────
 const reRunWorkflow = async (owner, repo, runId, userToken) => {
   const client = makeClient(userToken);
   await client.post(`/repos/${owner}/${repo}/actions/runs/${runId}/rerun`);
   return { queued: true, runId };
 };
 
-// ── FUNCTION: cancelWorkflow ─────────────────────────────────
 const cancelWorkflow = async (owner, repo, runId, userToken) => {
   const client = makeClient(userToken);
   await client.post(`/repos/${owner}/${repo}/actions/runs/${runId}/cancel`);
   return { cancelled: true, runId };
 };
 
-// ── FUNCTION: listWebhooks ───────────────────────────────────
 const listWebhooks = async (owner, repo, userToken) => {
   try {
     const client   = makeClient(userToken);
@@ -87,7 +79,6 @@ const listWebhooks = async (owner, repo, userToken) => {
   }
 };
 
-// ── FUNCTION: createWebhook ──────────────────────────────────
 const createWebhook = async (owner, repo, userToken, webhookUrl, secret) => {
   const client = makeClient(userToken);
   const response = await client.post(`/repos/${owner}/${repo}/hooks`, {
